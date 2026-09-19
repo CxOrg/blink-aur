@@ -1,44 +1,42 @@
-Blink Qt on Arch Linux
-======================
+blink-aur
+========
 
-This directory contains the files needed to build Blink Qt as an Arch
-Linux package.
+Arch Linux (AUR) package for blink-qt, a fully featured SIP client with a
+Qt based UI.
 
 Files
 -----
 
- * PKGBUILD              - Arch Linux package recipe (use with makepkg/yay)
+ * PKGBUILD              - Arch package recipe (use with makepkg/yay)
  * blink.desktop         - desktop entry for the package
- * install_sipsimple.sh  - builds and installs the SIP SIMPLE SDK
+ * install.sh            - end-to-end install script (all deps + blink-qt)
  * fix_ffmpeg_pix_fmts.patch - PJSIP 2.10 / FFmpeg 5.1+ compatibility patch
+
+Quick install
+-------------
+
+The install script handles the full dependency chain in the correct order:
+
+    ./install.sh
+
+This installs:
+  1. Official repo dependencies (pacman)
+  2. AUR-only dependencies (yay)
+  3. python-sipsimple (built from source with the FFmpeg patch)
+  4. blink-qt (built from the PKGBUILD)
+
+Manual build
+------------
+
+If all dependencies are already installed:
+
+    makepkg -si
 
 SIP SIMPLE SDK
 --------------
 
-The SIP SIMPLE SDK (python-sipsimple) is not in the official Arch Linux
-repositories.  The AUR package `python-sipsimple` exists but fails to build
-against modern FFmpeg (>= 5.1) because the bundled PJSIP 2.10 uses
-AVCodec fields (`pix_fmts`, `supported_framerates`) that were removed.
-
-`install_sipsimple.sh` builds the SDK from source with the included
-compatibility patch that switches to `avcodec_get_supported_config()`.
-Run it from this directory:
-
-    ./install_sipsimple.sh
-
-Building Blink
---------------
-
-After installing the SDK, build and install Blink as an Arch package:
-
-    cd arch
-    makepkg -si
-
-This builds the Cython extension, installs the Python package, resources,
-desktop entry, and man page system-wide.  The binary is installed as
-`/usr/bin/blink`.
-
-Alternatively, build in-place for development (without installing):
-
-    sh ./build_inplace
-    ./run
+The AUR `python-sipsimple` package fails to build against modern FFmpeg
+(>= 5.1) because the bundled PJSIP 2.10 uses AVCodec fields (`pix_fmts`,
+`supported_framerates`) that were removed.  The `install.sh` script builds
+sipsimple from source with `fix_ffmpeg_pix_fmts.patch` applied, which
+switches to `avcodec_get_supported_config()`.
