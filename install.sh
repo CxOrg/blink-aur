@@ -121,7 +121,7 @@ echo "=== Step 2b: Building python-msrplib ==="
 
 MSRPLIB_VERSION="0.21.2"
 
-if pacman -Q python-msrplib >/dev/null 2>&1; then
+if have_module msrplib; then
     echo "python-msrplib already installed - skipping."
 else
     BUILD_DIR="$HOME/work"
@@ -141,7 +141,7 @@ else
     echo "Building python-msrplib..."
     pip3 install --break-system-packages .
 
-    if ! pacman -Q python-msrplib >/dev/null 2>&1; then
+    if ! have_module msrplib; then
         echo "ERROR: python-msrplib failed to install correctly."
         exit 1
     fi
