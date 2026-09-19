@@ -181,6 +181,16 @@ else
     echo "Applying ZRTPCPP cstdint patch..."
     patch -p1 < "$HERE/fix_zrtpcpp_cstdint.patch"
 
+    echo "Applying FFmpeg sed fixes (avcodec_close, key_frame)..."
+    ffmpeg_file="deps/pjsip/pjmedia/src/pjmedia-codec/ffmpeg_vid_codecs.c"
+    # Add compatibility macros after the existing AVCODEC_HAS_DECODE line
+    sed -i '/^#define AVCODEC_HAS_DECODE/a\\n/* Frame key detection compatibility */\n#if defined(AV_FRAME_FLAG_KEY)\n#define PJ_FFMPEG_FRAME_IS_KEY(frame_ptr) \\\n    ((frame_ptr) ? (((frame_ptr)->flags \& AV_FRAME_FLAG_KEY) != 0) : PJ_FALSE)\n#else\n#define PJ_FFMPEG_FRAME_IS_KEY(frame_ptr) \\\n    ((frame_ptr) ? ((frame_ptr)->key_frame != 0) : PJ_FALSE)\n#endif\n\n/* avcodec_close compatibility */\n#if LIBAVCODEC_VER_AT_LEAST(58, 10)\n#  define AVCODEC_CLOSE(ctx) avcodec_free_context(\&ctx)\n#else\n#  define AVCODEC_CLOSE(ctx) avcodec_close(ctx)\n#endif' "$ffmpeg_file"
+    # Replace avcodec_close calls with AVCODEC_CLOSE macro
+    sed -i 's/avcodec_close(ff->enc_ctx)/AVCODEC_CLOSE(ff->enc_ctx)/g' "$ffmpeg_file"
+    sed -i 's/avcodec_close(ff->dec_ctx)/AVCODEC_CLOSE(ff->dec_ctx)/g' "$ffmpeg_file"
+    # Replace avframe.key_frame with PJ_FFMPEG_FRAME_IS_KEY macro
+    sed -i 's/avframe\.key_frame)/PJ_FFMPEG_FRAME_IS_KEY(\&avframe))/g' "$ffmpeg_file"
+
     echo "Building SIP SIMPLE SDK..."
     pip3 install --break-system-packages --no-build-isolation .
 
