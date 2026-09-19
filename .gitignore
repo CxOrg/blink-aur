@@ -1,0 +1,11 @@
+# makepkg build artifacts
+/src/
+/pkg/
+/blink-qt/
+
+# built packages
+/*.pkg.tar.*
+/*.src.tar.*
+
+# makepkg logs
+/*.log
