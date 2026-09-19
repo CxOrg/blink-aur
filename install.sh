@@ -16,9 +16,7 @@
 
 set -e
 
-SIPSIMPLE_COMMIT="2511d6b6536f5ccb22916a9ee552ff6ab33b904d"
 SIPSIMPLE_MIN_VERSION="5.3.2"         # minimum acceptable already-installed version
-PJSIP_VERSION="2.10"
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -115,89 +113,36 @@ else
 fi
 
 # ============================================================================
-# Step 2b: python-msrplib (built from source - AUR 0.21.1 has broken URL)
+# Step 2b: python-msrplib (built as pacman package - AUR 0.21.1 has broken URL)
 # ============================================================================
 echo "=== Step 2b: Building python-msrplib ==="
 
-MSRPLIB_VERSION="0.21.2"
-
-if have_module msrplib; then
+if pacman -Q python-msrplib >/dev/null 2>&1; then
     echo "python-msrplib already installed - skipping."
 else
-    BUILD_DIR="$HOME/work"
-    mkdir -p "$BUILD_DIR"
-    cd "$BUILD_DIR"
-
-    msrp_tar="python3_msrplib-$MSRPLIB_VERSION.tar.gz"
-    if [ ! -f "$msrp_tar" ]; then
-        echo "Downloading python3-msrplib $MSRPLIB_VERSION..."
-        wget -N "http://download.ag-projects.com/SipSimpleSDK/Python3/$msrp_tar"
-    fi
-
-    rm -rf "python3_msrplib-$MSRPLIB_VERSION"
-    tar zxf "$msrp_tar"
-    cd "python3_msrplib-$MSRPLIB_VERSION"
-
-    echo "Building python-msrplib..."
-    pip3 install --break-system-packages .
-
-    if ! have_module msrplib; then
-        echo "ERROR: python-msrplib failed to install correctly."
-        exit 1
-    fi
+    MSRPDIR="$HERE/msrplib"
+    cd "$MSRPDIR"
+    rm -rf src pkg *.pkg.tar.* *.log
+    makepkg
+    sudo pacman -U --noconfirm python-msrplib-*.pkg.tar.zst
+    cd "$HERE"
     echo "python-msrplib installed successfully."
 fi
 
 # ============================================================================
-# Step 3: python-sipsimple (built from source with FFmpeg patch)
+# Step 3: python-sipsimple (built as pacman package with FFmpeg patch)
 # ============================================================================
 echo "=== Step 3: Building python-sipsimple ==="
 
-if sipsimple_ok; then
+if pacman -Q python-sipsimple >/dev/null 2>&1 && sipsimple_ok; then
     echo "python-sipsimple $(python3 -c 'import sipsimple; print(sipsimple.__version__)') already installed - skipping."
 else
-    echo "python-sipsimple not found (or older than $SIPSIMPLE_MIN_VERSION); building from source..."
-
-    BUILD_DIR="$HOME/work"
-    mkdir -p "$BUILD_DIR"
-    cd "$BUILD_DIR"
-
-    srcdir="python3-sipsimple-$SIPSIMPLE_COMMIT"
-    if [ ! -d "$srcdir" ]; then
-        echo "Downloading python3-sipsimple (commit $SIPSIMPLE_COMMIT)..."
-        wget -N "https://github.com/AGProjects/python3-sipsimple/archive/$SIPSIMPLE_COMMIT.tar.gz"
-        tar zxf "$SIPSIMPLE_COMMIT.tar.gz"
-        rm -f "$SIPSIMPLE_COMMIT.tar.gz"
-    fi
-
-    cd "$srcdir"
-    echo "Fetching SDK C dependencies (PJSIP $PJSIP_VERSION)..."
-    chmod +x ./get_dependencies.sh
-    ./get_dependencies.sh "$PJSIP_VERSION"
-
-    echo "Applying FFmpeg compatibility patch..."
-    patch -p1 < "$HERE/fix_ffmpeg_pix_fmts.patch"
-
-    echo "Applying ZRTPCPP cstdint patch..."
-    patch -p1 < "$HERE/fix_zrtpcpp_cstdint.patch"
-
-    echo "Applying FFmpeg sed fixes (avcodec_close, key_frame)..."
-    ffmpeg_file="deps/pjsip/pjmedia/src/pjmedia-codec/ffmpeg_vid_codecs.c"
-    # Add compatibility macros after the existing AVCODEC_HAS_DECODE line
-    sed -i '/^#define AVCODEC_HAS_DECODE/a\\n/* Frame key detection compatibility */\n#if defined(AV_FRAME_FLAG_KEY)\n#define PJ_FFMPEG_FRAME_IS_KEY(frame_ptr) \\\n    ((frame_ptr) ? (((frame_ptr)->flags \& AV_FRAME_FLAG_KEY) != 0) : PJ_FALSE)\n#else\n#define PJ_FFMPEG_FRAME_IS_KEY(frame_ptr) \\\n    ((frame_ptr) ? ((frame_ptr)->key_frame != 0) : PJ_FALSE)\n#endif\n\n/* avcodec_close compatibility */\n#if LIBAVCODEC_VER_AT_LEAST(58, 10)\n#  define AVCODEC_CLOSE(ctx) avcodec_free_context(\&ctx)\n#else\n#  define AVCODEC_CLOSE(ctx) avcodec_close(ctx)\n#endif' "$ffmpeg_file"
-    # Replace avcodec_close calls with AVCODEC_CLOSE macro
-    sed -i 's/avcodec_close(ff->enc_ctx)/AVCODEC_CLOSE(ff->enc_ctx)/g' "$ffmpeg_file"
-    sed -i 's/avcodec_close(ff->dec_ctx)/AVCODEC_CLOSE(ff->dec_ctx)/g' "$ffmpeg_file"
-    # Replace avframe.key_frame with PJ_FFMPEG_FRAME_IS_KEY macro
-    sed -i 's/avframe\.key_frame)/PJ_FFMPEG_FRAME_IS_KEY(\&avframe))/g' "$ffmpeg_file"
-
-    echo "Building SIP SIMPLE SDK..."
-    pip3 install --break-system-packages --no-build-isolation .
-
-    if ! sipsimple_ok; then
-        echo "ERROR: sipsimple failed to install correctly."
-        exit 1
-    fi
+    SIPDIR="$HERE/sipsimple"
+    cd "$SIPDIR"
+    rm -rf src pkg *.pkg.tar.* *.log
+    makepkg
+    sudo pacman -U --noconfirm python-sipsimple-*.pkg.tar.zst
+    cd "$HERE"
     echo "python-sipsimple installed successfully."
 fi
 

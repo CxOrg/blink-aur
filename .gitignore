@@ -2,10 +2,18 @@
 /src/
 /pkg/
 /blink-qt/
+/sipsimple/src/
+/sipsimple/pkg/
+/msrplib/src/
+/msrplib/pkg/
 
 # built packages
 /*.pkg.tar.*
 /*.src.tar.*
+/sipsimple/*.pkg.tar.*
+/msrplib/*.pkg.tar.*
 
 # makepkg logs
 /*.log
+/sipsimple/*.log
+/msrplib/*.log
