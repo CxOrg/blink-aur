@@ -8,7 +8,7 @@ pkgrel=1
 pkgdesc='Fully featured, easy to use SIP client with a Qt based UI'
 arch=('x86_64' 'aarch64')
 url='https://icanblink.com/'
-license=('GPL-3-only')
+license=('GPL-3.0-only')
 depends=(
   'avahi'
   'python-application'
@@ -17,6 +17,7 @@ depends=(
   'python-google-auth-oauthlib'
   'python-lxml'
   'python-lxml-html-clean'
+  'python-numpy'
   'python-oauth2client'
   'python-pgpy'
   'python-pyqt6'
