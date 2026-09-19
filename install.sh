@@ -84,11 +84,11 @@ sudo pacman -S --needed --noconfirm "${PACMAN_DEPS[@]}"
 # ============================================================================
 echo "=== Step 2: Installing AUR dependencies ==="
 
+# python-msrplib is built from source (AUR version 0.21.1 has broken URL)
 AUR_DEPS=(
     python-application
     python-eventlib
     python-gnutls
-    python-msrplib
     python-otr
     python-xcaplib
     python-dnspython
@@ -112,6 +112,40 @@ if [ ${#NEEDS_AUR[@]} -gt 0 ]; then
     yay -S --needed "${NEEDS_AUR[@]}"
 else
     echo "All AUR dependencies already installed."
+fi
+
+# ============================================================================
+# Step 2b: python-msrplib (built from source - AUR 0.21.1 has broken URL)
+# ============================================================================
+echo "=== Step 2b: Building python-msrplib ==="
+
+MSRPLIB_VERSION="0.21.2"
+
+if pacman -Q python-msrplib >/dev/null 2>&1; then
+    echo "python-msrplib already installed - skipping."
+else
+    BUILD_DIR="$HOME/work"
+    mkdir -p "$BUILD_DIR"
+    cd "$BUILD_DIR"
+
+    msrp_tar="python3_msrplib-$MSRPLIB_VERSION.tar.gz"
+    if [ ! -f "$msrp_tar" ]; then
+        echo "Downloading python3-msrplib $MSRPLIB_VERSION..."
+        wget -N "http://download.ag-projects.com/SipSimpleSDK/Python3/$msrp_tar"
+    fi
+
+    rm -rf "python3_msrplib-$MSRPLIB_VERSION"
+    tar zxf "$msrp_tar"
+    cd "python3_msrplib-$MSRPLIB_VERSION"
+
+    echo "Building python-msrplib..."
+    pip3 install --break-system-packages .
+
+    if ! pacman -Q python-msrplib >/dev/null 2>&1; then
+        echo "ERROR: python-msrplib failed to install correctly."
+        exit 1
+    fi
+    echo "python-msrplib installed successfully."
 fi
 
 # ============================================================================
