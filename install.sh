@@ -16,7 +16,7 @@
 
 set -e
 
-SIPSIMPLE_VERSION="5.3.3.1"           # tagged python3-sipsimple release to build
+SIPSIMPLE_COMMIT="2511d6b6536f5ccb22916a9ee552ff6ab33b904d"
 SIPSIMPLE_MIN_VERSION="5.3.2"         # minimum acceptable already-installed version
 PJSIP_VERSION="2.10"
 
@@ -162,12 +162,12 @@ else
     mkdir -p "$BUILD_DIR"
     cd "$BUILD_DIR"
 
-    srcdir="python3-sipsimple-$SIPSIMPLE_VERSION"
+    srcdir="python3-sipsimple-$SIPSIMPLE_COMMIT"
     if [ ! -d "$srcdir" ]; then
-        echo "Downloading python3-sipsimple $SIPSIMPLE_VERSION..."
-        wget -N "https://github.com/AGProjects/python3-sipsimple/archive/refs/tags/$SIPSIMPLE_VERSION.tar.gz"
-        tar zxf "$SIPSIMPLE_VERSION.tar.gz"
-        rm -f "$SIPSIMPLE_VERSION.tar.gz"
+        echo "Downloading python3-sipsimple (commit $SIPSIMPLE_COMMIT)..."
+        wget -N "https://github.com/AGProjects/python3-sipsimple/archive/$SIPSIMPLE_COMMIT.tar.gz"
+        tar zxf "$SIPSIMPLE_COMMIT.tar.gz"
+        rm -f "$SIPSIMPLE_COMMIT.tar.gz"
     fi
 
     cd "$srcdir"
