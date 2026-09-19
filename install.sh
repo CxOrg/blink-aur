@@ -178,6 +178,9 @@ else
     echo "Applying FFmpeg compatibility patch..."
     patch -p1 < "$HERE/fix_ffmpeg_pix_fmts.patch"
 
+    echo "Applying ZRTPCPP cstdint patch..."
+    patch -p1 < "$HERE/fix_zrtpcpp_cstdint.patch"
+
     echo "Building SIP SIMPLE SDK..."
     pip3 install --break-system-packages --no-build-isolation .
 
