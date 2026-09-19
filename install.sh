@@ -179,7 +179,7 @@ else
     patch -p1 < "$HERE/fix_ffmpeg_pix_fmts.patch"
 
     echo "Building SIP SIMPLE SDK..."
-    pip3 install --break-system-packages .
+    pip3 install --break-system-packages --no-build-isolation .
 
     if ! sipsimple_ok; then
         echo "ERROR: sipsimple failed to install correctly."
